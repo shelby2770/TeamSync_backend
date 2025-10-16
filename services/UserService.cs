@@ -1,6 +1,7 @@
 using TeamSyncB.models;
 using TeamSyncB.data;
 using MongoDB.Driver;
+using BCrypt.Net;
 
 namespace TeamSyncB.services
 {
@@ -9,6 +10,7 @@ namespace TeamSyncB.services
         Task<List<User>> GetAllUsers();
         Task<User?> GetUserById(Guid userId);
         Task<User> CreateUser(User user);
+        Task<User?> ValidateLogin(string email, string password);
     }
 
     public class UserService : IUserService
@@ -36,11 +38,23 @@ namespace TeamSyncB.services
                 .Find(u => u.Email == user.Email)
                 .FirstOrDefaultAsync();
             
-            if (exist!=null) throw new Exception("Email already exists");
+            if (exist != null) throw new Exception("Email already exists");
             
             user.UserId = Guid.NewGuid();
+            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+
             await _dbContext.Users.InsertOneAsync(user);
             return user;
+        }
+
+        public async Task<User?> ValidateLogin(string email, string password)
+        {
+            var user = await _dbContext.Users
+                .Find(u => u.Email == email)
+                .FirstOrDefaultAsync();
+            
+            if (user != null && BCrypt.Net.BCrypt.Verify(password, user.Password)) return user;            
+            return null;
         }
     }
 }

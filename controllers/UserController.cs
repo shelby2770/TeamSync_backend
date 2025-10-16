@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TeamSyncB.models;
+using TeamSyncB.DTOs;
 using TeamSyncB.services;
 
 namespace TeamSyncB.controllers
@@ -23,7 +24,13 @@ namespace TeamSyncB.controllers
         public async Task<IActionResult> GetUsers()
         {
             var users = await _userService.GetAllUsers();
-            return Ok(users);
+            var userReturn = users.Select(user => new
+            {
+                user.UserId,
+                user.Name,
+                user.Email,
+            });
+            return Ok(userReturn);
         }
 
         [HttpGet("{userId}")]
@@ -31,10 +38,17 @@ namespace TeamSyncB.controllers
         {
             var user = await _userService.GetUserById(userId);
             if (user == null) return NotFound();
-            return Ok(user);
+            
+            var userReturn = new
+            {
+                user.UserId,
+                user.Name,
+                user.Email,
+            };
+            return Ok(userReturn);
         }
 
-        [HttpPost]
+        [HttpPost("signup")]
         public async Task<IActionResult> CreateUser([FromBody] User user)
         {
             if (!ModelState.IsValid) 
@@ -45,13 +59,40 @@ namespace TeamSyncB.controllers
             try
             {
                 var newUser = await _userService.CreateUser(user);
-                return CreatedAtAction(nameof(GetUser), new { userId = newUser.UserId }, newUser);
+                var newUserReturn = new
+                {
+                    newUser.UserId,
+                    newUser.Name,
+                    newUser.Email
+                };
+                return Ok(newUserReturn);
             }
             
             catch (Exception e)
             {
                 return StatusCode(500, e.Message);
             }
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = await _userService.ValidateLogin(loginRequest.Email, loginRequest.Password);
+            
+            if (user == null) return Unauthorized("Invalid email or password");
+
+            var userReturn = new
+            {
+                user.UserId,
+                user.Name,
+                user.Email
+            };
+            return Ok(userReturn);
         }
     }
 }
