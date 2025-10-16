@@ -18,5 +18,7 @@ namespace TeamSyncB.data
         }
 
         public IMongoCollection<User> Users => _database.GetCollection<User>("Users");
+        public IMongoCollection<Project> Projects => _database.GetCollection<Project>("Projects");
+        public IMongoCollection<TeamSyncB.models.Task> Tasks => _database.GetCollection<TeamSyncB.models.Task>("Tasks");
     }
 }
