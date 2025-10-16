@@ -15,16 +15,19 @@ namespace TeamSyncB.models
         
         public string Description { get; set; }
         
-        public string Status { get; set; } = "To Do";
+        public string Status { get; set; }
         
+        [BsonRepresentation(BsonType.String)]
         public Guid? Assignee { get; set; }
         
         public DateTime? DueDate { get; set; }
         
         [Required(ErrorMessage = "ProjectId is required")]
+        [BsonRepresentation(BsonType.String)]
         public Guid ProjectId { get; set; }
         
         [Required(ErrorMessage = "CreatedBy is required")]
+        [BsonRepresentation(BsonType.String)]
         public Guid CreatedBy { get; set; }
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
