@@ -8,6 +8,13 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSingleton<ApplicationDbContext>();
 
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = "TeamSync";
+});
+
+builder.Services.AddScoped<CacheService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
